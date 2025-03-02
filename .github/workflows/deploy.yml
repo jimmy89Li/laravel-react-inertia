@@ -30,7 +30,7 @@ jobs:
           node-version: '20'
       - name: Install npm dependencies
         run: npm install && npm run build
-        
+
       - name: Lint Code Base
         uses: github/super-linter@v4
         env:
