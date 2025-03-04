@@ -5,39 +5,50 @@ namespace Tests\Feature;
 use App\Models\Project;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Testing\Fakes\Fake;
 use Tests\TestCase;
 
 class ProjectTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+    private Project $project;
+    private Collection $projects;
+    private string $name = 'Project 1';
+    private string $description = 'This is a test project';
+    private Carbon $date;
+    private string $status = 'pending';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->date = now()->addDays(7);
+        $this->user = User::factory()->create();
+        $this->projects = Project::factory(3)->create();
+        $this->project = Project::factory()->create([
+            'name'  => $this->name,
+            'description' => $this->description,
+            'due_date' => $this->date,
+            'status' => $this->status,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+    }
+
     public function test_projects_creation_success(): void
     {
-        User::factory(1)->create();
-        $projects = Project::factory()->count(3)->create();
-        $this->assertCount(3, $projects);
+        $this->assertCount(3, $this->projects);
     }
 
     public function test_project_creation_success_with_details(): void
     {
-        $user = User::factory()->create();
-        $date = now()->addDays(7);
-        $project = Project::factory()->create([
-            'name'  => 'Project 1',
-            'description' => 'This is a test project',
-            'due_date' => $date,
-            'status' => 'pending',
-            'created_by' => $user->id,
-            'updated_by' => $user->id,
-        ]);
-        $this->assertEquals('Project 1', $project->name);
-        $this->assertEquals('This is a test project', $project->description);
-        $this->assertEquals($date, $project->due_date);
-        $this->assertEquals('pending', $project->status);
-        $this->assertEquals($user->id, $project->created_by);
-        $this->assertEquals($user->id, $project->updated_by);
+        $this->assertEquals($this->name, $this->project->name);
+        $this->assertEquals($this->description, $this->project->description);
+        $this->assertEquals($this->date, $this->project->due_date);
+        $this->assertEquals($this->status, $this->project->status);
+        $this->assertEquals($this->user->id, $this->project->created_by);
+        $this->assertEquals($this->user->id, $this->project->updated_by);
     }
 }
