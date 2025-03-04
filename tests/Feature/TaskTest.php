@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -13,38 +14,45 @@ class TaskTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+    private Project $project;
+    private Collection $tasks;
+    private Task $task;
+    private string $name = 'Task 1';
+    private string $description = 'This is a test task';
+    private string $status = 'pending';
+    private string $priority = 'low';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->project = Project::factory()->create();
+        $this->tasks = Task::factory(10)->create([
+            'name' => $this->name,
+            'description' => $this->description,
+            'project_id' => $this->project->id,
+            'status' => $this->status,
+            'priority' => $this->priority,
+            'assigned_user_id' => $this->user->id,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+        $this->task = $this->tasks->first();
+    }
+
     public function test_tasks_creation_success(): void
     {
-        User::factory(1)->create();
-        Project::factory(1)->create();
-
-        $tasks = Task::factory(10)->create([
-            'project_id' => 1,
-            'status' => 'pending',
-            'priority' => 'low',
-        ]);
-        $this->assertCount(10, $tasks);
+        $this->assertCount(10, $this->tasks);
     }
 
     public function test_task_creation_with_details(): void
     {
-        $user = User::factory()->create();
-        $project = Project::factory()->create();
-        $task = Task::factory()->create([
-            'name' => 'Task 1',
-            'description' => 'This is a test task',
-            'project_id' => $project->id,
-            'status' => 'pending',
-            'priority' => 'low',
-            'assigned_user_id' => $user->id,
-            'created_by' => $user->id,
-            'updated_by' => $user->id,
-        ]);
-        $this->assertEquals('Task 1', $task->name);
-        $this->assertEquals('This is a test task', $task->description);
-        $this->assertEquals('pending', $task->status);
-        $this->assertEquals('low', $task->priority);
-        $this->assertEquals($project->id, $task->project_id);
-        $this->assertEquals($user->id, $task->assigned_user_id);
+        $this->assertEquals($this->name, $this->task->name);
+        $this->assertEquals($this->description, $this->task->description);
+        $this->assertEquals($this->status, $this->task->status);
+        $this->assertEquals($this->priority, $this->task->priority);
+        $this->assertEquals($this->project->id, $this->task->project_id);
+        $this->assertEquals($this->user->id, $this->task->assigned_user_id);
     }
 }
